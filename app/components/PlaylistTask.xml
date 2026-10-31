@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<component name="PlaylistTask" extends="Task">
+  <interface>
+    <field id="url" type="string" />
+    <field id="requestId" type="integer" />
+    <field id="cancelled" type="boolean" value="false" />
+    <field id="result" type="assocarray" alwaysNotify="true" />
+  </interface>
+  <script type="text/brightscript" uri="pkg:/source/lib/Playlist.brs" />
+  <script type="text/brightscript" uri="pkg:/components/PlaylistTask.brs" />
+</component>

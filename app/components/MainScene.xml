@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<component name="MainScene" extends="Scene">
+  <interface>
+    <field id="initialState" type="string" alwaysNotify="true" onChange="onInitialState" />
+    <field id="persistState" type="string" alwaysNotify="true" />
+    <field id="persistenceOk" type="boolean" alwaysNotify="true" onChange="onPersistenceResult" />
+    <field id="exitRequested" type="boolean" value="false" />
+  </interface>
+  <script type="text/brightscript" uri="pkg:/source/lib/Playlist.brs" />
+  <script type="text/brightscript" uri="pkg:/source/lib/State.brs" />
+  <script type="text/brightscript" uri="pkg:/components/MainScene.brs" />
+  <children>
+    <Group id="browser">
+      <Rectangle width="1280" height="720" color="#10151F" />
+      <Label text="OTTPlay" translation="[54,32]" width="350" height="54" font="font:LargeBoldSystemFont" color="#F4F7FA" />
+      <Label id="sourceLabel" translation="[460,46]" width="764" height="38" horizAlign="right" color="#97ABB9" />
+      <Rectangle translation="[54,104]" width="1172" height="2" color="#2A3948" />
+      <Label text="Categories" translation="[54,123]" width="260" height="38" color="#98AEC0" />
+      <Label id="listTitle" text="Channels" translation="[370,123]" width="850" height="38" color="#98AEC0" />
+      <LabelList id="categories" translation="[54,176]" itemSize="[278,46]" numRows="8" vertFocusAnimationStyle="floatingFocus" color="#DDE8F0" focusedColor="#14202B" />
+      <LabelList id="channels" translation="[370,176]" itemSize="[852,46]" numRows="8" vertFocusAnimationStyle="floatingFocus" color="#DDE8F0" focusedColor="#14202B" />
+      <Label id="emptyLabel" translation="[380,245]" width="800" height="165" wrap="true" color="#A9BAC7" visible="false" />
+      <Label id="status" translation="[54,556]" width="1172" height="82" wrap="true" font="font:SmallSystemFont" color="#AFCCD8" />
+      <Rectangle translation="[54,646]" width="1172" height="2" color="#2A3948" />
+      <Label text="OK  Play / Select     *  Options &amp; Favorites     Back  Return / Cancel" translation="[54,663]" width="1172" height="32" color="#B6C3CE" />
+    </Group>
+    <Group id="videoLayer">
+      <Video id="video" width="1280" height="720" visible="false" enableUI="true" />
+    </Group>
+    <Timer id="startupTimer" duration="30" repeat="false" />
+  </children>
+</component>

@@ -1,0 +1,5 @@
+#EXTM3U
+# Official streaming test, referenced rather than redistributed.
+# Source: https://developer.apple.com/streaming/examples/
+#EXTINF:-1 tvg-id="apple-bipbop-demo" group-title="Demo",Apple BipBop streaming test
+https://devstreaming-cdn.apple.com/videos/streaming/examples/img_bipbop_adv_example_ts/master.m3u8

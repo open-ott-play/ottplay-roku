@@ -1,0 +1,13 @@
+node_modules/
+dist/
+out/
+.roku-staging/
+__pycache__/
+*.pyc
+.DS_Store
+.env
+.env.*
+*.pkg
+*.key
+*.pem
+*.log

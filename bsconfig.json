@@ -1,0 +1,16 @@
+{
+  "rootDir": "app",
+  "files": [
+    "manifest",
+    "source/**/*.brs",
+    "components/**/*.brs",
+    "components/**/*.xml",
+    "data/**/*.m3u",
+    "images/**/*"
+  ],
+  "createPackage": false,
+  "copyToStaging": false,
+  "sourceMap": false,
+  "deploy": false,
+  "minFirmwareVersion": "11.5"
+}

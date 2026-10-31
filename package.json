@@ -1,0 +1,26 @@
+{
+  "name": "ottplay-roku",
+  "version": "0.1.0-beta.1",
+  "rokuBuild": 1,
+  "private": true,
+  "description": "OTTPlay native BrightScript and SceneGraph client for Roku",
+  "license": "MIT",
+  "engines": {
+    "node": ">=22.12.0 <23 || >=24.0.0 <25"
+  },
+  "scripts": {
+    "check": "bsc --project bsconfig.json && python3 scripts/package.py check",
+    "test": "node tests/toolchain.cjs && node scripts/test-brightscript.cjs && python3 -m unittest discover -s tests -p 'test_*.py'",
+    "build": "npm run check && python3 scripts/package.py build",
+    "verify": "npm run check && npm test && python3 scripts/package.py verify",
+    "sideload": "python3 scripts/sideload.py"
+  },
+  "devDependencies": {
+    "@rokucommunity/brs": "0.47.6",
+    "brighterscript": "0.73.8",
+    "decode-uri-component": "file:scripts/compat/decode-uri-component"
+  },
+  "overrides": {
+    "decode-uri-component": "$decode-uri-component"
+  }
+}
