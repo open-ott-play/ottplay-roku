@@ -37,6 +37,18 @@ Application Installer on a Roku with Developer Mode enabled. Roku has one
 sideload slot; installing this preview replaces the app currently in that slot.
 See the installation guide for the optional command-line installer.
 
+## Security checks
+
+The shared CodeQL workflow analyzes the JavaScript and Python build, packaging,
+and sideload helpers, their tests, and GitHub Actions workflows on pull requests,
+changes to `main`, and a weekly schedule. It can also be started manually from
+Actions.
+
+CodeQL does not support BrightScript or SceneGraph XML. The existing BrightScript
+compiler, interpreter tests, deterministic package checks, and npm dependency
+audit remain separate checks; a successful CodeQL scan does not establish Roku
+runtime or hardware safety.
+
 ## Scope
 
 The first preview implements a local M3U client. Cross-player favorites import,
