@@ -71,3 +71,13 @@ review and certification.
 
 MIT licensed. Roku is a trademark of Roku, Inc. This community project is not
 affiliated with or endorsed by Roku, Inc.
+
+### Documentation-only CI
+
+Both required Node matrix checks classify the complete PR or push diff before
+installing build tools. Ordinary documentation keeps each required result but
+skips dependency installation, compilation and package artifacts. Unknown,
+source, fixture, workflow or file-mode changes keep full qualification, as do
+manual runs. Independent CodeQL scanning retains its existing behavior. The
+release package allowlist excludes README and other documentation; this reduced
+path never claims to produce a tested sideload package.
