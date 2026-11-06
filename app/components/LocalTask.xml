@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<component name="LocalTask" extends="Task">
+  <interface>
+    <field id="endpoint" type="string" />
+    <field id="sourceId" type="string" />
+    <field id="requestId" type="integer" />
+    <field id="refresh" type="boolean" value="false" />
+    <field id="cancelled" type="boolean" value="false" />
+    <field id="urgent" type="boolean" value="true" />
+    <field id="result" type="assocarray" alwaysNotify="true" />
+  </interface>
+  <script type="text/brightscript" uri="pkg:/source/lib/Playlist.brs" />
+  <script type="text/brightscript" uri="pkg:/source/lib/Local.brs" />
+  <script type="text/brightscript" uri="pkg:/components/LocalTask.brs" />
+</component>

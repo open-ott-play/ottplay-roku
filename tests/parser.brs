@@ -71,6 +71,7 @@ sub Main()
     eq(readPlayerState(String(24577, "a")).playlistUrl, "demo", "Oversized stored state safely resets")
     state.selectedKey = String(25000, "a")
     check(not stateFitsRegistry(state), "Registry budget enforced")
+    localTests()
     if m.failures = 0
         print "[OTT TEST RESULT] PASS "; m.assertions
     else

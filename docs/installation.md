@@ -70,9 +70,10 @@ transport controls use the native Video component's behavior; successful
 seeking depends on the stream. Physical-remote behavior still needs device
 validation.
 
-The last played selection is saved, but the preview does not automatically
-resume playback at startup. Favorites stay available across this client's M3U
-sources. The maximum is 100 entries within a 24 KiB budget for all saved state;
+The last M3U selection is saved without automatically resuming it at startup.
+When Local is the saved source, reopening starts a new session in its saved
+folder as soon as a playable video arrives. Favorites stay available across
+this client's M3U sources. The maximum is 100 entries within a 24 KiB budget for all saved state;
 long URLs may fill that budget earlier.
 
 The preview reads a playlist URL and plays supported HTTP/HTTPS media using
@@ -85,6 +86,12 @@ file. The app checks its size periodically and refuses to parse more than
 8 MiB; a transfer can briefly exceed that size between checks. It displays at
 most 20,000 entries and reports truncation. It does not yet stream a partial
 catalog into the list while parsing.
+
+**Local videos** in Options is a separate progressive folder source. Connect an
+OTT media helper through a Roku-reachable endpoint, select a folder, and the
+first available MP4/MKV video starts while discovery continues. See
+[Local videos setup](local-videos.md), including the loopback helper's gateway
+requirement, shuffle controls and cancellation behavior.
 
 Relative media URLs resolve against the playlist address you entered. If a
 provider redirects that address to another directory or host, use its final

@@ -1,5 +1,5 @@
 function defaultPlayerState() as object
-    return {version: 1, playlistUrl: "demo", category: "all", selectedKey: "", favorites: []}
+    return {version: 1, playlistUrl: "demo", category: "all", selectedKey: "", favorites: [], mode: "playlist", localEndpoint: "", localSourceId: "", localSourceName: "", localShuffle: false}
 end function
 
 function validChannel(value as dynamic) as boolean
@@ -16,6 +16,13 @@ function readPlayerState(raw as string) as object
     parsed = ParseJson(raw)
     if Type(parsed) <> "roAssociativeArray" then return state
     if parsed.version <> 1 then return state
+    state.localEndpoint = localEndpoint(parsed.localEndpoint)
+    if state.localEndpoint <> "" and localId(parsed.localSourceId)
+        state.localSourceId = parsed.localSourceId
+        if isText(parsed.localSourceName) then state.localSourceName = Left(parsed.localSourceName, 256)
+        if parsed.mode = "local" then state.mode = "local"
+    end if
+    if parsed.localShuffle = true then state.localShuffle = true
     if isText(parsed.playlistUrl)
         if parsed.playlistUrl = "demo" or safePlaylistUrl(parsed.playlistUrl) then state.playlistUrl = parsed.playlistUrl
     end if

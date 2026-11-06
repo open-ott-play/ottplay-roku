@@ -1,6 +1,7 @@
 # OTT Play for Roku
 
-A native BrightScript / SceneGraph client for user-supplied M3U playlists.
+A native BrightScript / SceneGraph client for user-supplied M3U playlists and
+Local videos shared through an OTT media helper.
 This repository has its own release cycle and produces a sideload ZIP. The
 same app can be packaged on a physical Roku for a temporary Roku Beta app.
 
@@ -19,6 +20,8 @@ device test is required before creating a Roku Beta app.
 - An editable playlist URL and a bundled demonstration playlist.
 - Persistent local favorites, source URL, selected category, and channel.
 - A reproducible sideload ZIP, checksum file, and release provenance.
+- Local folder selection, progressive first-video playback, sequential or shuffle
+  sessions, and saved server/folder settings. See [Local setup](docs/local-videos.md).
 
 This is a separate native client, not a website in a Roku browser. The here.now
 site hosts downloads and instructions. It does not run the player on Roku.
@@ -51,7 +54,9 @@ runtime or hardware safety.
 
 ## Scope
 
-The first preview implements a local M3U client. Cross-player favorites import,
+The client supports M3U playlists and authenticated, server-backed Local folders.
+Local playback uses available MP4/MKV files and this Roku's native codecs; it
+does not mount USB/SMB/AFP folders. Cross-player favorites import,
 controller pairing, `ott` CLI commands, Plex, VPortal, Stalker, DRM, and an on-device
 torrent engine are not implemented. Do not load a full OTT profile expecting all
 providers to work. Future adapters must use versioned contracts and report their
