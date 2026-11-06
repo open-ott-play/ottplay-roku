@@ -26,16 +26,26 @@ jobs:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
         with:
           persist-credentials: false
+          fetch-depth: 0
+      - name: Classify complete change
+        id: scope
+        run: python3 scripts/change_scope.py
       - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        if: steps.scope.outputs.run != 'false' || steps.scope.outputs.reason != 'documentation-only'
         with:
           node-version: ${{ matrix.node }}
       - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
+        if: steps.scope.outputs.run != 'false' || steps.scope.outputs.reason != 'documentation-only'
         with:
           python-version: '3.12'
-      - run: npm ci --ignore-scripts --no-audit --no-fund
-      - run: npm audit --audit-level=moderate
-      - run: npm run verify
+      - if: steps.scope.outputs.run != 'false' || steps.scope.outputs.reason != 'documentation-only'
+        run: npm ci --ignore-scripts --no-audit --no-fund
+      - if: steps.scope.outputs.run != 'false' || steps.scope.outputs.reason != 'documentation-only'
+        run: npm audit --audit-level=moderate
+      - if: steps.scope.outputs.run != 'false' || steps.scope.outputs.reason != 'documentation-only'
+        run: npm run verify
       - uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
+        if: steps.scope.outputs.run != 'false' || steps.scope.outputs.reason != 'documentation-only'
         with:
           name: roku-sideload-node-${{ matrix.node }}
           path: |
@@ -43,3 +53,6 @@ jobs:
             dist/SHA256SUMS
             dist/release.json
           if-no-files-found: error
+      - name: Report documentation-only result
+        if: steps.scope.outputs.run == 'false' && steps.scope.outputs.reason == 'documentation-only'
+        run: echo 'Documentation-only change; BrightScript, dependency and package qualification were not exercised.'
