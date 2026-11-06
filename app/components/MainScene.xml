@@ -7,7 +7,9 @@
     <field id="exitRequested" type="boolean" value="false" />
   </interface>
   <script type="text/brightscript" uri="pkg:/source/lib/Playlist.brs" />
+  <script type="text/brightscript" uri="pkg:/source/lib/Local.brs" />
   <script type="text/brightscript" uri="pkg:/source/lib/State.brs" />
+  <script type="text/brightscript" uri="pkg:/components/LocalScene.brs" />
   <script type="text/brightscript" uri="pkg:/components/MainScene.brs" />
   <children>
     <Group id="browser">

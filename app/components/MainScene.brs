@@ -25,6 +25,13 @@ sub init()
     m.focusArea = "channels"
     m.dialogKind = ""
     m.initialized = false
+    m.localChoosingSources = false
+    m.localSources = []
+    m.localAuto = false
+    m.localPending = false
+    m.localGeneration = ""
+    m.localPlayed = {}
+    m.localFailures = 0
 end sub
 
 sub onInitialState()
@@ -33,7 +40,11 @@ sub onInitialState()
     m.state = readPlayerState(m.top.initialState)
     renderCategories()
     renderChannels()
-    loadSource(m.state.playlistUrl)
+    if m.state.mode = "local"
+        startLocalSource(m.state.localEndpoint, {id: m.state.localSourceId, name: m.state.localSourceName}, false)
+    else
+        loadSource(m.state.playlistUrl)
+    end if
 end sub
 
 sub persist()
@@ -50,6 +61,7 @@ end sub
 
 sub loadSource(source as string)
     cancelLoad(false)
+    m.localChoosingSources = false
     m.requestId = m.requestId + 1
     m.loading = true
     m.status.text = "Loading playlist... Back cancels; the previous list remains available."
@@ -62,18 +74,7 @@ sub loadSource(source as string)
     restoreBrowserFocus()
 end sub
 
-sub cancelLoad(showMessage as boolean)
-    if m.task <> invalid
-        m.task.cancelled = true
-        m.task.UnobserveField("result")
-        m.task = invalid
-    end if
-    if m.loading
-        m.requestId = m.requestId + 1
-        m.loading = false
-        if showMessage then m.status.text = "Playlist loading cancelled."
-    end if
-end sub
+
 
 sub onPlaylistResult(event as object)
     result = event.GetData()
@@ -86,6 +87,7 @@ sub onPlaylistResult(event as object)
         return
     end if
     m.catalog = result.channels
+    m.state.mode = "playlist"
     m.state.playlistUrl = result.source
     renderCategories()
     renderChannels()
@@ -100,7 +102,16 @@ sub onPlaylistResult(event as object)
 end sub
 
 sub renderCategories()
+    if m.localChoosingSources then return
     content = CreateObject("roSGNode", "ContentNode")
+    if m.state.mode = "local"
+        m.categoryKeys = ["all"]
+        node = content.CreateChild("ContentNode")
+        node.title = "Local videos"
+        m.categories.content = content
+        m.categories.jumpToItem = 0
+        return
+    end if
     m.categoryKeys = ["all", "favorites"]
     node = content.CreateChild("ContentNode")
     node.title = "All"
@@ -127,8 +138,18 @@ sub renderCategories()
 end sub
 
 sub renderChannels()
+    if m.localChoosingSources then return
+    focusedLocalId = ""
+    if m.state.mode = "local"
+        index = m.channels.itemFocused
+        if index >= 0 and index < m.visibleEntries.Count() then focusedLocalId = m.visibleEntries[index].channel.id
+    end if
     m.visibleEntries = []
-    if m.state.category = "favorites"
+    if m.state.mode = "local"
+        for each channel in m.catalog
+            m.visibleEntries.Push({source: "local:" + m.state.localSourceId, channel: channel, local: true})
+        end for
+    else if m.state.category = "favorites"
         for each entry in m.state.favorites
             m.visibleEntries.Push(entry)
         end for
@@ -154,6 +175,7 @@ sub renderChannels()
         if favoriteKeys.DoesExist(key) then marker = "* "
         node.title = (i + 1).ToStr() + "  " + marker + entry.channel.title
         if key = m.state.selectedKey then selected = i
+        if m.state.mode = "local" and entry.channel.id = focusedLocalId then selected = i
     end for
     m.channels.content = content
     if m.visibleEntries.Count() > 0 then m.channels.jumpToItem = selected
@@ -162,6 +184,10 @@ sub renderChannels()
     if m.state.category = "favorites" then m.emptyLabel.text = "No favorites yet. Select a channel, press *, and choose Add to favorites."
     m.listTitle.text = "Channels (" + m.visibleEntries.Count().ToStr() + ")"
     if m.state.category = "favorites" then m.listTitle.text = "Favorites (" + m.visibleEntries.Count().ToStr() + ")"
+    if m.state.mode = "local"
+        m.listTitle.text = "Local videos (" + m.visibleEntries.Count().ToStr() + ")"
+        m.emptyLabel.text = "Waiting for the first MP4 or MKV video. Back cancels; Options selects another folder."
+    end if
 end sub
 
 sub onCategorySelected()
@@ -169,6 +195,11 @@ sub onCategorySelected()
 end sub
 
 sub selectCategory(index as integer)
+    if m.localChoosingSources or m.state.mode = "local"
+        m.focusArea = "channels"
+        restoreBrowserFocus()
+        return
+    end if
     if index < 0 or index >= m.categoryKeys.Count() then return
     m.state.category = m.categoryKeys[index]
     renderChannels()
@@ -179,11 +210,21 @@ end sub
 
 sub onChannelSelected()
     index = m.channels.itemSelected
+    if m.localChoosingSources
+        if index >= 0 and index < m.localSources.Count() then startLocalSource(m.localProposedEndpoint, m.localSources[index], false)
+        return
+    end if
     if index < 0 or index >= m.visibleEntries.Count() then return
+    if m.state.mode = "local"
+        m.localAuto = true
+        m.localFailures = 0
+        m.localPlayed = {}
+    end if
     playEntry(m.visibleEntries[index])
 end sub
 
 function focusedEntry() as dynamic
+    if m.localChoosingSources then return invalid
     if m.playingEntry <> invalid then return m.playingEntry
     index = m.channels.itemFocused
     if index >= 0 and index < m.visibleEntries.Count() then return m.visibleEntries[index]
@@ -198,7 +239,12 @@ sub playEntry(entry as object)
     stopVideo(false)
     m.playbackId = m.playbackId + 1
     m.playingEntry = entry
-    m.state.selectedKey = channelIdentity(entry.source, entry.channel)
+    if entry.local = true
+        m.localPlayed[entry.channel.id] = true
+        if m.task <> invalid then m.task.urgent = false
+    else
+        m.state.selectedKey = channelIdentity(entry.source, entry.channel)
+    end if
     persist()
     ' New nodes isolate delayed events from a previously stopped stream.
     m.videoLayer.RemoveChild(m.video)
@@ -214,6 +260,7 @@ sub playEntry(entry as object)
     content.url = entry.channel.url
     content.title = entry.channel.title
     format = mediaFormat(entry.channel.url)
+    if entry.local = true then format = entry.channel.streamFormat
     if format <> "" then content.streamFormat = format
     content.HttpCertificatesFile = "common:/certs/ca-bundle.crt"
     m.video.content = content
@@ -248,10 +295,19 @@ sub onVideoState(event as object)
     state = event.GetData()
     if state = "playing" or state = "paused"
         m.startupTimer.control = "stop"
+        m.localFailures = 0
     else if state = "error"
+        if m.playingEntry.local = true
+            localPlaybackEnded(true)
+            return
+        end if
         stopVideo(true)
         m.status.text = "Roku could not play this stream. Its format, codec, access rules, or network may be unsupported. Select it to retry."
     else if state = "finished"
+        if m.playingEntry.local = true
+            localPlaybackEnded(false)
+            return
+        end if
         stopVideo(true)
         m.status.text = "Playback finished. Choose another channel or play this video again."
     end if
@@ -261,11 +317,16 @@ sub onVideoTimeout()
     if m.playingEntry = invalid then return
     if m.playbackClock.TotalMilliseconds() < 30000 then return
     if m.video.state = "playing" or m.video.state = "paused" then return
+    if m.playingEntry.local = true
+        localPlaybackEnded(true)
+        return
+    end if
     stopVideo(true)
     m.status.text = "Video did not start within 30 seconds. Check the connection or select another channel."
 end sub
 
 sub onVideoBack()
+    if m.state.mode = "local" then cancelLoad(false)
     stopVideo(true)
 end sub
 
@@ -277,6 +338,8 @@ sub restoreBrowserFocus()
     if m.dialogKind <> "" then return
     if m.playingEntry <> invalid
         m.video.SetFocus(true)
+    else if m.localChoosingSources and m.localSources.Count() > 0
+        m.channels.SetFocus(true)
     else if m.focusArea = "categories" or m.visibleEntries.Count() = 0
         m.focusArea = "categories"
         m.categories.SetFocus(true)
@@ -287,14 +350,28 @@ end sub
 
 sub showOptions()
     if m.dialogKind <> "" then return
+    if m.state.mode = "local" and not m.localChoosingSources
+        showLocalOptions()
+        return
+    end if
+    showPlaylistOptions()
+end sub
+
+sub showPlaylistOptions()
     entry = focusedEntry()
     buttons = []
     m.optionActions = []
-    if entry <> invalid
+    if entry <> invalid and m.state.mode <> "local"
         label = "Add to favorites"
         if favoriteIndex(m.state.favorites, entry.source, entry.channel) >= 0 then label = "Remove from favorites"
         buttons.Push(label)
         m.optionActions.Push("favorite")
+    end if
+    buttons.Push("Local videos")
+    m.optionActions.Push("local")
+    if m.state.localEndpoint <> ""
+        buttons.Push("Local server settings")
+        m.optionActions.Push("localSettings")
     end if
     buttons.Push("Playlist URL")
     m.optionActions.Push("url")
@@ -306,7 +383,7 @@ sub showOptions()
     m.optionActions.Push("close")
     dialog = CreateObject("roSGNode", "Dialog")
     dialog.title = "OTTPlay options"
-    dialog.message = "M3U channel lists and native Roku playback. Favorites stay on this Roku."
+    dialog.message = "M3U playlists and shared Local folders. Settings stay on this Roku."
     dialog.buttons = buttons
     dialog.ObserveField("buttonSelected", "onOptionSelected")
     attachDialog(dialog, "options")
@@ -333,6 +410,7 @@ end sub
 sub onDialogClosed()
     m.activeDialog = invalid
     m.dialogKind = ""
+    playNextLocal()
     restoreBrowserFocus()
 end sub
 
@@ -346,6 +424,34 @@ sub onOptionSelected()
     else if action = "url"
         showUrlDialog()
         return
+    else if action = "local"
+        if m.state.localEndpoint = ""
+            showLocalUrlDialog()
+        else
+            loadLocalFolders(m.state.localEndpoint)
+        end if
+    else if action = "localUrl"
+        showLocalUrlDialog()
+    else if action = "localSettings"
+        showLocalSettings()
+    else if action = "playlistOptions"
+        showPlaylistOptions()
+    else if action = "localForget"
+        forgetLocalServer()
+    else if action = "localReload"
+        startLocalSource(m.state.localEndpoint, {id: m.state.localSourceId, name: m.state.localSourceName}, true)
+    else if action = "localPlay"
+        m.state.localShuffle = not m.state.localShuffle
+        m.localPlayed = {}
+        m.localFailures = 0
+        m.localAuto = true
+        stopVideo(true)
+        persist()
+        playNextLocal()
+    else if action = "localNext"
+        m.localAuto = true
+        stopVideo(true)
+        playNextLocal()
     else if action = "reload"
         stopVideo(true)
         loadSource(m.state.playlistUrl)
@@ -353,6 +459,7 @@ sub onOptionSelected()
         stopVideo(true)
         loadSource("demo")
     end if
+    playNextLocal()
     restoreBrowserFocus()
 end sub
 
@@ -377,6 +484,7 @@ sub onUrlSelected()
             m.status.text = "Enter an HTTP or HTTPS playlist URL without spaces or embedded username/password. Press * to edit it."
         end if
     end if
+    playNextLocal()
     restoreBrowserFocus()
 end sub
 
@@ -438,6 +546,7 @@ sub onExitSelected()
         persist()
         m.top.exitRequested = true
     else
+        playNextLocal()
         restoreBrowserFocus()
     end if
 end sub
@@ -447,6 +556,7 @@ function onKeyEvent(key as string, press as boolean) as boolean
     if m.dialogKind <> ""
         if key = "back"
             closeDialog()
+            playNextLocal()
             restoreBrowserFocus()
             return true
         end if
@@ -457,7 +567,19 @@ function onKeyEvent(key as string, press as boolean) as boolean
         return true
     end if
     if key = "back"
+        if m.localChoosingSources
+            cancelLoad(false)
+            m.localChoosingSources = false
+            renderCategories()
+            renderChannels()
+            m.sourceLabel.text = "Saved M3U playlist"
+            if m.state.mode = "local" then m.sourceLabel.text = "Local: " + m.state.localSourceName
+            m.status.text = "Folder selection cancelled. Choose an entry or open Options."
+            restoreBrowserFocus()
+            return true
+        end if
         if m.playingEntry <> invalid
+            if m.state.mode = "local" then cancelLoad(false)
             stopVideo(true)
         else if m.loading
             cancelLoad(true)
