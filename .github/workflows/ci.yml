@@ -23,18 +23,18 @@ jobs:
       matrix:
         node: [22.23.4, 24.22.1]
     steps:
-      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           persist-credentials: false
           fetch-depth: 0
       - name: Classify complete change
         id: scope
         run: python3 scripts/change_scope.py
-      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
         if: steps.scope.outputs.run != 'false' || steps.scope.outputs.reason != 'documentation-only'
         with:
           node-version: ${{ matrix.node }}
-      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7
         if: steps.scope.outputs.run != 'false' || steps.scope.outputs.reason != 'documentation-only'
         with:
           python-version: '3.12'
@@ -44,7 +44,7 @@ jobs:
         run: npm audit --audit-level=moderate
       - if: steps.scope.outputs.run != 'false' || steps.scope.outputs.reason != 'documentation-only'
         run: npm run verify
-      - uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         if: steps.scope.outputs.run != 'false' || steps.scope.outputs.reason != 'documentation-only'
         with:
           name: roku-sideload-node-${{ matrix.node }}
