@@ -1,7 +1,7 @@
 # Release, signing, and Beta distribution
 
-The `0.1.0-beta.1` preview prepares a reproducible sideload ZIP without requiring
-a Roku device. It does **not** include a signed `.pkg`, a Roku Beta access code,
+The current preview release prepares a reproducible sideload ZIP without
+requiring a Roku device. It does **not** include a signed `.pkg`, a Roku Beta access code,
 or a claim of hardware validation. GitHub's prerelease label and Roku's Beta
 app program are separate things.
 
