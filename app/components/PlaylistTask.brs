@@ -37,9 +37,9 @@ sub loadPlaylist()
             DeleteFile(path)
             return
         end if
-        info = filesystem.Stat(path)
-        if info <> invalid and info.size <> invalid
-            if info.size > 8388608
+        size = statSize(filesystem.Stat(path))
+        if size <> invalid
+            if size > 8388608
                 request.AsyncCancel()
                 DeleteFile(path)
                 publishResult({channels: [], error: "Playlist is larger than 8 MiB. Use a smaller playlist.", skipped: 0, truncated: false})
@@ -51,9 +51,9 @@ sub loadPlaylist()
             if event.GetSourceIdentity() = request.GetIdentity()
                 code = event.GetResponseCode()
                 if code >= 200 and code < 300
-                    info = filesystem.Stat(path)
-                    if info <> invalid and info.size <> invalid
-                        if info.size <= 8388608
+                    size = statSize(filesystem.Stat(path))
+                    if size <> invalid
+                        if size <= 8388608
                             text = ReadAsciiFile(path)
                             DeleteFile(path)
                             publishResult(parseM3u(text, source))

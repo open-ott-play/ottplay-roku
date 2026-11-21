@@ -72,6 +72,7 @@ sub Main()
     state.selectedKey = String(25000, "a")
     check(not stateFitsRegistry(state), "Registry budget enforced")
     localTests()
+    fileInfoTests()
     if m.failures = 0
         print "[OTT TEST RESULT] PASS "; m.assertions
     else

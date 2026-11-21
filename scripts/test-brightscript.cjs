@@ -27,8 +27,10 @@ try {
     path.join(root, "app/source/lib/Playlist.brs"),
     path.join(root, "app/source/lib/Local.brs"),
     path.join(root, "app/source/lib/State.brs"),
+    path.join(root, "app/source/lib/FileInfo.brs"),
     path.join(root, "tests/parser.brs"),
     path.join(root, "tests/local.brs"),
+    path.join(root, "tests/fileinfo.brs"),
   ], { cwd: root, encoding: "utf8", timeout: 60000, maxBuffer: 1024 * 1024 });
   process.stdout.write(result.stdout || "");
   process.stderr.write(result.stderr || "");
