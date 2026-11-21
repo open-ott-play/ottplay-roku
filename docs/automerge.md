@@ -52,7 +52,9 @@ request can be merged, whether automatically or by hand.
 
 ## Renovate pull requests
 
-Dependency pull requests receive `automerge` from a second source. The shared
+Renovate runs under the `californiantiramisu` account here, so its pull
+requests appear under that author and match the labeler allowlist on their
+own. They receive `automerge` from a second source as well. The shared
 preset they extend (`local>victron-venus/venus-os-ci-toolkit:renovate-fleet`,
 which extends `renovate-ci`) sets `"addLabels": ["automerge"]`, so Renovate
 applies the label itself when it opens the pull request;
