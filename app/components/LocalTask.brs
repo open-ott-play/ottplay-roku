@@ -93,7 +93,7 @@ function localGet(url as string) as object
             return result
         end if
         info = filesystem.Stat(path)
-        if info <> invalid
+        if info <> invalid and info.size <> invalid
             if info.size > 8388608
                 request.AsyncCancel()
                 DeleteFile(path)
@@ -107,7 +107,7 @@ function localGet(url as string) as object
                 code = event.GetResponseCode()
                 if code >= 200 and code < 300
                     info = filesystem.Stat(path)
-                    if info <> invalid
+                    if info <> invalid and info.size <> invalid
                         if info.size <= 8388608
                             result.value = ParseJson(ReadAsciiFile(path))
                             result.error = ""
