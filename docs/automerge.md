@@ -49,3 +49,28 @@ label alone.
 Removing the label does not remove the bot approval. The approval covers one
 head commit; a new commit needs a fresh independent approval before the pull
 request can be merged, whether automatically or by hand.
+
+## Renovate pull requests
+
+Dependency pull requests receive `automerge` from a second source. The shared
+preset they extend (`local>victron-venus/venus-os-ci-toolkit:renovate-fleet`,
+which extends `renovate-ci`) sets `"addLabels": ["automerge"]`, so Renovate
+applies the label itself when it opens the pull request;
+[`automerge-label.yml`](../.github/workflows/automerge-label.yml) also matches
+those pull requests, which makes the label look like it comes only from CI.
+
+The label is still a merge opt-in, not Renovate's own automerge: the preset
+sets `"automerge": false`, so Renovate never merges by itself.
+
+Removing the label there is not undone by a rebase or a version update.
+Renovate only synchronizes labels while the pull request carries exactly the
+labels it recorded at creation; once another account changes them, it stops
+updating them for that pull request. Only the `opened`, `reopened` and
+`ready_for_review` events above add the label back.
+
+The withdrawal does not transfer to a replacement pull request: a new one that
+Renovate opens later starts with the preset label again. To stop Renovate from
+touching an open dependency pull request, apply its `stop-updating` label
+(`stopUpdatingLabel`), which this repository already defines. To stop labelling
+dependency pull requests at all, set `addLabels` or `automerge: false` for the
+matching `packageRules` in the preset instead of removing labels one by one.
