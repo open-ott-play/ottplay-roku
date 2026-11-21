@@ -11,5 +11,6 @@
   </interface>
   <script type="text/brightscript" uri="pkg:/source/lib/Playlist.brs" />
   <script type="text/brightscript" uri="pkg:/source/lib/Local.brs" />
+  <script type="text/brightscript" uri="pkg:/source/lib/FileInfo.brs" />
   <script type="text/brightscript" uri="pkg:/components/LocalTask.brs" />
 </component>

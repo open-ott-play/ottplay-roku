@@ -92,9 +92,9 @@ function localGet(url as string) as object
             DeleteFile(path)
             return result
         end if
-        info = filesystem.Stat(path)
-        if info <> invalid and info.size <> invalid
-            if info.size > 8388608
+        size = statSize(filesystem.Stat(path))
+        if size <> invalid
+            if size > 8388608
                 request.AsyncCancel()
                 DeleteFile(path)
                 result.error = "Local catalog exceeds 8 MiB. Share a smaller folder."
@@ -106,9 +106,9 @@ function localGet(url as string) as object
             if event.GetSourceIdentity() = request.GetIdentity()
                 code = event.GetResponseCode()
                 if code >= 200 and code < 300
-                    info = filesystem.Stat(path)
-                    if info <> invalid and info.size <> invalid
-                        if info.size <= 8388608
+                    size = statSize(filesystem.Stat(path))
+                    if size <> invalid
+                        if size <= 8388608
                             result.value = ParseJson(ReadAsciiFile(path))
                             result.error = ""
                         else
