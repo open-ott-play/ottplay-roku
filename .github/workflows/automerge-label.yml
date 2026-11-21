@@ -1,0 +1,33 @@
+# Trusted metadata only; never check out or execute pull-request source.
+# The reusable auto-merge workflow treats the "automerge" label as the opt-in
+# signal, but only Renovate adds it today. Without it every same-repository PR
+# from a trusted human author is skipped ("PR is not eligible") while the job
+# still reports success.
+name: Label trusted PRs for auto-merge
+
+on:
+  pull_request_target:
+    types: [opened, reopened, ready_for_review]
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: automerge-label-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  label:
+    if: >-
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      contains(fromJSON('["4alvit","californiantiramisu","dependabot[bot]","renovate[bot]"]'), github.event.pull_request.user.login) &&
+      !github.event.pull_request.draft
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Add the automerge opt-in label
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: gh pr edit "$PR_NUMBER" --repo "$GITHUB_REPOSITORY" --add-label automerge
