@@ -34,7 +34,11 @@ gh pr edit <number> --repo open-ott-play/ottplay-roku --remove-label automerge
 ```
 
 The `unlabeled` event makes the merge workflow evaluate the pull request as
-ineligible, so it neither merges nor re-requests a merge. Confirm that the
+ineligible, so it neither merges nor re-requests a merge. Remove the label once the labeler's own
+`opened` run has finished: removing it within seconds can lose that race,
+because the queued run adds the label afterwards and the pull request
+then merges. The timeline shows whether the last `labeled` event came
+from a person or from `github-actions[bot]`; remove again if it did. Confirm that the
 timeline shows the removal and that the pull request is still open. Converting
 the pull request back to a draft also stops it from being merged, and it is the
 right choice when the work needs a longer pause or a redesign.
