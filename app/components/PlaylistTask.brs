@@ -38,7 +38,7 @@ sub loadPlaylist()
             return
         end if
         info = filesystem.Stat(path)
-        if info <> invalid
+        if info <> invalid and info.size <> invalid
             if info.size > 8388608
                 request.AsyncCancel()
                 DeleteFile(path)
@@ -52,7 +52,7 @@ sub loadPlaylist()
                 code = event.GetResponseCode()
                 if code >= 200 and code < 300
                     info = filesystem.Stat(path)
-                    if info <> invalid
+                    if info <> invalid and info.size <> invalid
                         if info.size <= 8388608
                             text = ReadAsciiFile(path)
                             DeleteFile(path)
