@@ -39,11 +39,12 @@ timeline shows the removal and that the pull request is still open. Converting
 the pull request back to a draft also stops it from being merged, and it is the
 right choice when the work needs a longer pause or a redesign.
 
-The opt-in is intentionally not permanent: adding the label again resumes
-automatic merging for the current head, and reopening the pull request or
-marking it ready for review again re-adds the label by itself. To keep a change
-out of `main` until a person decides, keep it as a draft or merge it manually
-after review instead of relying on a removed label.
+The withdrawal holds until the next `opened`, `reopened` or `ready_for_review`
+event: adding the label again resumes automatic merging for the current head,
+and those events re-add it by themselves. A removed label is a pause for
+repairs, not a permanent veto. To keep a change out of `main` until a person
+decides, leave it as a draft or merge it manually, and do not rely on a removed
+label alone.
 
 Removing the label does not remove the bot approval. The approval covers one
 head commit; a new commit needs a fresh independent approval before the pull
