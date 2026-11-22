@@ -104,16 +104,20 @@ it, which is what allowed the merge at 23:10:41.
 ## Running Renovate for one repository
 
 The fleet workflow covers the whole organisation, which makes it a slow way to
-check this repository alone. A local run is enough, but four environment
-details decide whether it works:
+check this repository alone. A local run is enough, but six environment
+details decide whether it works. The values below are examples: replace the
+registry with a reachable mirror and the author with the account behind the
+token.
 
 ```sh
 export RENOVATE_TOKEN="$(gh auth token)"
 export RENOVATE_PLATFORM=github
 export RENOVATE_REPOSITORIES=open-ott-play/ottplay-roku
-export RENOVATE_NPMRC='registry=<mirror-url>/'
-export RENOVATE_GIT_AUTHOR='<login> <id+login@users.noreply.github.com>'
-npx --yes renovate@44.215.0 --dry-run=full --log-level=debug
+export RENOVATE_NPMRC='registry=https://npm.example.com/'
+export npm_config_registry='https://npm.example.com/'
+export RENOVATE_GIT_AUTHOR='renovate-bot <1234567+renovate-bot@users.noreply.github.com>'
+export LOG_LEVEL=debug
+npx --yes renovate@44.215.0 --dry-run=full
 ```
 
 - **Pin the Renovate version.** An unpinned run resolves whatever is current,
@@ -124,15 +128,25 @@ npx --yes renovate@44.215.0 --dry-run=full --log-level=debug
   and fails with `TypeError: RegExp.escape is not a function`. The engine
   range in `package.json` describes this application, not Renovate, so it does
   not grant permission to use those runtimes.
-- **Give it a reachable npm registry.** Where `registry.npmjs.org` is blocked,
-  dependency lookups fail with `read ENOTCONN`. `RENOVATE_NPMRC` takes
-  `.npmrc` lines, so `registry=<mirror-url>/` sends Renovate's own package
-  manager calls to a mirror.
+- **Give it a reachable npm registry, twice.** Where `registry.npmjs.org` is
+  blocked, dependency lookups fail with `read ENOTCONN`. `RENOVATE_NPMRC`
+  takes `.npmrc` lines, so `registry=https://npm.example.com/` sends
+  Renovate's own package manager calls to a mirror. It does not cover `npx`,
+  which downloads Renovate itself: that download reads `npm_config_registry`
+  (or a real `~/.npmrc`), so set both or `npx` fails to fetch the pinned
+  version.
+- **Set the log level through the environment.** This Renovate release has no
+  `--log-level` flag; `--log-level=debug` stops the run immediately with
+  `error: unknown option '--log-level=debug'`. Export `LOG_LEVEL=debug`
+  instead. A debug run then prints `DEBUG:` lines right below the `INFO:
+  Renovate started` header, starting with `DEBUG: Using RE2 regex engine`;
+  without them the level did not take effect.
 - **Set the git author to the pushing account.** The branch is pushed as
   `RENOVATE_GIT_AUTHOR` over `RENOVATE_TOKEN`, and a mismatch makes GitHub
   reject the push with `GH007: Your push would publish a private email
-  address`. Use that account's noreply address, which for a bot account is
-  `<id>+<login>@users.noreply.github.com`.
+  address`. Use that account's noreply address, which for a bot account looks
+  like `1234567+renovate-bot@users.noreply.github.com`, with the numeric id
+  and login from the token's account.
 
 The run is scoped only by `RENOVATE_REPOSITORIES`: the CLI does not accept a
 `--repositories` flag, and without the variable it uses whatever the shared
