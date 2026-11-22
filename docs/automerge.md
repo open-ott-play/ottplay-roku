@@ -157,3 +157,24 @@ a real pull request, which opens under the token's account and author. The
 preset's `prHourlyLimit: 1` then applies to that run too: a second dependency
 pull request in the same UTC hour is skipped with `Hourly PRs limit reached`,
 so wait for the next hour instead of lowering the limit.
+
+## Verified without a dry run
+
+The recipe was also run once with `--dry-run` removed, on Node 24.22.3 with
+`renovate@44.215.0`, against a throwaway private repository that extended the
+same fleet preset and pinned `lodash 4.17.20`:
+
+- Renovate pushed `renovate/npm-lodash-vulnerability` and opened the pull
+  request as the account behind `RENOVATE_TOKEN`, with the commit authored by
+  the matching `RENOVATE_GIT_AUTHOR`; a mismatched author would have been
+  rejected there instead.
+- The `automerge` label was already on the pull request when the labeler
+  workflow started. The timeline's only `labeled` event came from Renovate's
+  token at creation and the labeler's run was a no-op, so the preset's
+  `addLabels` labels a Renovate pull request first.
+- The single commit changed `package.json` from `lodash 4.17.20` to `4.18.1`
+  as a security update, and the repository summary reported
+  `"result": "pr-created"` rather than an empty `branches` list.
+
+That sandbox repository was deleted afterwards, so this section records the run
+instead of pointing at a pull request that no longer exists.
