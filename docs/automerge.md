@@ -114,10 +114,10 @@ export RENOVATE_TOKEN="$(gh auth token)"
 export RENOVATE_PLATFORM=github
 export RENOVATE_REPOSITORIES=open-ott-play/ottplay-roku
 export RENOVATE_NPMRC='registry=https://npm.example.com/'
-export npm_config_registry='https://npm.example.com/'
 export RENOVATE_GIT_AUTHOR='renovate-bot <1234567+renovate-bot@users.noreply.github.com>'
 export LOG_LEVEL=debug
-npx --yes renovate@44.215.0 --dry-run=full
+npm_config_registry='https://npm.example.com/' \
+  npx --yes renovate@44.215.0 --dry-run=full
 ```
 
 - **Pin the Renovate version.** An unpinned run resolves whatever is current,
@@ -133,8 +133,9 @@ npx --yes renovate@44.215.0 --dry-run=full
   takes `.npmrc` lines, so `registry=https://npm.example.com/` sends
   Renovate's own package manager calls to a mirror. It does not cover `npx`,
   which downloads Renovate itself: that download reads `npm_config_registry`
-  (or a real `~/.npmrc`), so set both or `npx` fails to fetch the pinned
-  version.
+  (or a real `~/.npmrc`). Pass it as a prefix on that one command, as the
+  snippet does, so the mirror applies to the download and is not left behind
+  in the shell for later `npx` or `npm` calls.
 - **Set the log level through the environment.** This Renovate release has no
   `--log-level` flag; `--log-level=debug` stops the run immediately with
   `error: unknown option '--log-level=debug'`. Export `LOG_LEVEL=debug`
