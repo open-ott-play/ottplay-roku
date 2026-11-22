@@ -80,3 +80,65 @@ touching an open dependency pull request, apply its `stop-updating` label
 (`stopUpdatingLabel`), which this repository already defines. To stop labelling
 dependency pull requests at all, set `addLabels` or `automerge: false` for the
 matching `packageRules` in the preset instead of removing labels one by one.
+
+## Verified on a live rebase
+
+A manual Renovate 44.215.0 run against this repository opened pull request #43
+(`renovate/ci-workflows`) on 21 November 2026. Its timeline shows a withdrawn
+label surviving a rebase:
+
+| Time (UTC) | Event |
+| --- | --- |
+| 23:00:25 | Renovate opens the pull request carrying the preset's `automerge` label. |
+| 23:01:13 | `automerge` is removed by hand while the checks are still running. |
+| 23:07:52 | `main` has moved, so Renovate force-pushes the branch: `d829dc5` becomes `a8c70fe`. |
+| 23:09:53 | A person adds `automerge` back for the new head. |
+| 23:10:41 | The pull request is squash-merged as `88823b6`. |
+
+Between 23:01:13 and 23:09:53 the timeline has no `labeled` event, and the pull
+request carried no `automerge` label across the force push. The rebase replaced
+the head commit and still did not restore the label, so the withdrawal stayed
+in force with the checks green. The label returned only because a person added
+it, which is what allowed the merge at 23:10:41.
+
+## Running Renovate for one repository
+
+The fleet workflow covers the whole organisation, which makes it a slow way to
+check this repository alone. A local run is enough, but four environment
+details decide whether it works:
+
+```sh
+export RENOVATE_TOKEN="$(gh auth token)"
+export RENOVATE_PLATFORM=github
+export RENOVATE_REPOSITORIES=open-ott-play/ottplay-roku
+export RENOVATE_NPMRC='registry=<mirror-url>/'
+export RENOVATE_GIT_AUTHOR='<login> <id+login@users.noreply.github.com>'
+npx --yes renovate@44.215.0 --dry-run=full --log-level=debug
+```
+
+- **Pin the Renovate version.** An unpinned run resolves whatever is current,
+  so its output cannot be compared with the fleet workflow or reproduced
+  later. Renovate 44.215.0 is the version the checks above describe.
+- **Run it on Node 24.** Renovate validates its runtime at startup: Node 26
+  stops with `Unsupported node environment detected`, and Node 22 is too old
+  and fails with `TypeError: RegExp.escape is not a function`. The engine
+  range in `package.json` describes this application, not Renovate, so it does
+  not grant permission to use those runtimes.
+- **Give it a reachable npm registry.** Where `registry.npmjs.org` is blocked,
+  dependency lookups fail with `read ENOTCONN`. `RENOVATE_NPMRC` takes
+  `.npmrc` lines, so `registry=<mirror-url>/` sends Renovate's own package
+  manager calls to a mirror.
+- **Set the git author to the pushing account.** The branch is pushed as
+  `RENOVATE_GIT_AUTHOR` over `RENOVATE_TOKEN`, and a mismatch makes GitHub
+  reject the push with `GH007: Your push would publish a private email
+  address`. Use that account's noreply address, which for a bot account is
+  `<id>+<login>@users.noreply.github.com`.
+
+The run is scoped only by `RENOVATE_REPOSITORIES`: the CLI does not accept a
+`--repositories` flag, and without the variable it uses whatever the shared
+configuration lists. Start with `--dry-run=full`, which prints the pull
+requests it would create or update without pushing anything; drop the flag for
+a real pull request, which opens under the token's account and author. The
+preset's `prHourlyLimit: 1` then applies to that run too: a second dependency
+pull request in the same UTC hour is skipped with `Hourly PRs limit reached`,
+so wait for the next hour instead of lowering the limit.
