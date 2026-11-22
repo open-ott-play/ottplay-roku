@@ -104,7 +104,7 @@ it, which is what allowed the merge at 23:10:41.
 ## Running Renovate for one repository
 
 The fleet workflow covers the whole organisation, which makes it a slow way to
-check this repository alone. A local run is enough, but six environment
+check this repository alone. A local run is enough, but a few environment
 details decide whether it works. The values below are examples: replace the
 registry with a reachable mirror and the author with the account behind the
 token.
